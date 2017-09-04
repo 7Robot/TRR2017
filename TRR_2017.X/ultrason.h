@@ -8,13 +8,15 @@
 #ifndef ULTRASON_H
 #define	ULTRASON_H
 
-#define CAPT_US_D   _RC3
-#define TRIS_US_D   _TRISC3
-#define IE_US_D     _CN28IE
+#define CAPT_US_AR   _RC3
+#define TRIS_US_AR   _TRISC3
+#define IE_US_AR     _CN28IE
 
-#define CAPT_US_G   _RB7
-#define TRIS_US_G   _TRISB7
-#define IE_US_G     _CN23IE
+#define CAPT_US_AV  _RB7
+#define TRIS_US_AV  _TRISB7
+#define IE_US_AV    _CN23IE
+
+#define NB_MOY 5
 
 #include <stdint.h>
 
@@ -30,8 +32,8 @@ enum etat_US{
  */
 void init_ultrason();
 
-uint16_t get_distance_US_d();
-uint16_t get_distance_US_g();
+uint16_t get_distance_US_AR();
+uint16_t get_distance_US_AV();
 uint16_t moy_US(uint16_t tab_val[], uint8_t* index, uint8_t valeur);
 
 

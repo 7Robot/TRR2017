@@ -17,7 +17,8 @@
 
 int main(void) {
     
-    int16_t temp;
+    int16_t us_av;
+    int16_t us_ar;
     
     
     config_oscillator();
@@ -28,9 +29,11 @@ int main(void) {
     
     while(1)
     {
-        temp = get_distance_US_g();
-        PWM_Moteurs_droit((float)(temp / 10));
+        //us_av = get_distance_US_av();
+        //us_ar = get_distance_US_ar();
+        //PWM_Moteurs_droit((float)(temp / 10));
         //set_angle_servo(0);
+        PWM_Moteurs_droit(-40);
     }
     
     return 0;

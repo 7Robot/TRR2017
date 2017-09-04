@@ -5,23 +5,23 @@
 
 volatile etat_US etat = SEND_RDY;
 
-volatile uint16_t debut_g;
-volatile uint16_t fin_g;
-volatile uint16_t debut_d;
-volatile uint16_t fin_d;
+volatile uint16_t debut_av;
+volatile uint16_t fin_av;
+volatile uint16_t debut_ar;
+volatile uint16_t fin_ar;
 
-volatile uint16_t distance_g;
-volatile uint16_t distance_d;
+volatile uint16_t distance_av;
+volatile uint16_t distance_ar;
 
 void init_ultrason()
 {
     //On désactive les interruptions sur changement
-    IE_US_D = 0;
-    IE_US_G = 0;
+    IE_US_AR = 0;
+    IE_US_AV = 0;
     
     //On met les PIN en input par précaution
-    TRIS_US_D = 1;
-    TRIS_US_G = 1;
+    TRIS_US_AR = 1;
+    TRIS_US_AV = 1;
     
     //On configure le timer 4 pour gérer les capteurs
         //T4 actif, gate off, prescaler 1/8, mode 16 bits, source int
@@ -51,20 +51,20 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
 {    
     uint32_t temp;
     static uint8_t cpt_restart;
-    static uint16_t val_capt_g[5] = {0};
-    static uint8_t index_g = 0;
-    static uint8_t index_d = 0;
-    static uint16_t val_capt_d[5] = {0};
+    static uint16_t val_capt_av[NB_MOY] = {0};
+    static uint8_t index_av = 0;
+    static uint8_t index_ar = 0;
+    static uint16_t val_capt_ar[NB_MOY] = {0};
     
     switch(etat)
     {
     //On peut envoyer une impulsion
     case SEND_RDY:
         //On met les pins en output et on les met à 1
-        TRIS_US_G = 0;
-        TRIS_US_D = 0;
-        CAPT_US_G = 1;
-        CAPT_US_D = 1;
+        TRIS_US_AV = 0;
+        TRIS_US_AR = 0;
+        CAPT_US_AV = 1;
+        CAPT_US_AR = 1;
         
         //On prépare l'attente de 40µs
         PR4 = 200; 
@@ -75,10 +75,10 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
     //L'impulsion a été envoyée
     case SENDING:
         //On met les pins à 0 puis en input
-        CAPT_US_D = 0;
-        CAPT_US_G = 0;
-        TRIS_US_D = 1;
-        TRIS_US_G = 1;
+        CAPT_US_AR = 0;
+        CAPT_US_AV = 0;
+        TRIS_US_AR = 1;
+        TRIS_US_AV = 1;
         
         //On reset le timer
         PR4 = 0xFFFF;
@@ -86,8 +86,8 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         
         //On autorise les interruptions sur notification de changement pour les capteurs
         _CNIF = 0;
-        IE_US_D = 1;
-        IE_US_G = 1;
+        IE_US_AR = 1;
+        IE_US_AV = 1;
         
         etat = WAITING;
         
@@ -95,8 +95,8 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
     //On à attendu 13.107 ms. On regarde les resultats
     case WAITING:
         //On interdit les interruptions sur notification de changement pour les capteurs
-        IE_US_D = 0;
-        IE_US_G = 0;
+        IE_US_AR = 0;
+        IE_US_AV = 0;
         
         //On calcul la durée de chaque impulsion
             /**
@@ -106,33 +106,35 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
              *donc multiplication par 1115 puis division par 32768 (2^15)
              *passage obligé en 32 bits
              */
-        if(fin_g)
+        if(fin_av)
         {
-            temp = fin_g - debut_g;
+            temp = fin_av - debut_av;
             temp = (temp * 1115) >> 15;
-            distance_g = (uint16_t)(temp);
         }
         else
         {
-            distance_g = 2000;
+            temp = 2000;
         }
         
-        if(fin_d)
+        distance_av = moy_US(val_capt_av, &index_av, (uint16_t)(temp));
+        
+        if(fin_ar)
         {
-            temp = fin_d - debut_d;
+            temp = fin_ar - debut_ar;
             temp = (temp * 1115) >> 15;
-            distance_d = (uint16_t)(temp);
         }
         else
         {
-            distance_d = 2000;
+            temp = 2000;
         }
+        
+        distance_ar = moy_US(val_capt_ar, &index_ar, temp);
         
         //On remet les mesures de temps à 0;
-        debut_g = 0;
-        fin_g = 0;
-        debut_d = 0;
-        fin_d = 0;
+        debut_av = 0;
+        fin_av = 0;
+        debut_ar = 0;
+        fin_ar = 0;
         
         etat = RESTART;
         //Avec une periode a 30710, il faut compter 6 fois pour avoir 50ms pour un cycle
@@ -140,9 +142,6 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         PR4 = 30710;
         cpt_restart = 0;        
         
-        //Moyennage des valeurs des capteurs
-        moy_US(val_capt_g, &index_g, distance_g);
-        moy_US(val_capt_d, &index_d, distance_d);
         break; 
         
     case RESTART:
@@ -167,39 +166,39 @@ void __attribute__((__interrupt__, no_auto_psv)) _CNInterrupt(void)
     {   
         //Test capteur gauche 
         //debut_g et fin_g sont remis à 0 dans l'interruption sur T4 etat WAITING
-        if((CAPT_US_G == 1) && (debut_g == 0))
+        if((CAPT_US_AV == 1) && (debut_av == 0))
         {
-            debut_g = TMR4;
+            debut_av = TMR4;
         }
         
-        if((CAPT_US_G == 0) && (debut_g != 0) && (fin_g == 0))
+        if((CAPT_US_AV == 0) && (debut_av != 0) && (fin_av == 0))
         {
-            fin_g = TMR4;
+            fin_av = TMR4;
         }
         
         //Test capteur droit 
         //debut_d et fin_d sont remis à 0 dans l'interruption sur T4 etat WAITING
-        if((CAPT_US_D == 1) && (debut_d == 0))
+        if((CAPT_US_AR == 1) && (debut_ar == 0))
         {
-            debut_d = TMR4;
+            debut_ar = TMR4;
         }
         
-        if((CAPT_US_D == 0) && (debut_d != 0) && (fin_d == 0))
+        if((CAPT_US_AR == 0) && (debut_ar != 0) && (fin_ar == 0))
         {
-            fin_d = TMR4;
+            fin_ar = TMR4;
         }
     }
     _CNIF = 0;
 }
 
-uint16_t get_distance_US_d()
+uint16_t get_distance_US_ar()
 {
-    return distance_d;
+    return distance_ar;
 }
 
-uint16_t get_distance_US_g()
+uint16_t get_distance_US_av()
 {
-    return distance_g;
+    return distance_av;
 }
 
 uint16_t moy_US(uint16_t* tab_val, uint8_t* index, uint8_t valeur)
@@ -209,13 +208,13 @@ uint16_t moy_US(uint16_t* tab_val, uint8_t* index, uint8_t valeur)
     
     tab_val[*index] = valeur;
     (*index)++;
-    if(*index >= 5)
+    if(*index >= NB_MOY)
         *index = 0;
     
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < NB_MOY; i++)
     {
         somme += tab_val[i];   
     }
     
-    return somme/5 ;
+    return somme/NB_MOY ;
 }

@@ -21,18 +21,32 @@ void init_asserv()
 void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
 {
     static float erreur_p;
+    static float erreur_p_p;
     static float erreur_i = 0;
-    static float angle;
+    static float erreur_d = 0;
+    float angle;
+    uint16_t dist_av;
     
-    erreur_p = get_distance_US_d() - get_distance_US_g();
+    erreur_p_p = erreur_p;
+    
+    dist_av = get_distance_US_av();
+    erreur_p = dist_av - get_distance_US_ar();
     
     erreur_i += erreur_p;
     
-    angle = 0.6*erreur_p;
+    erreur_d = erreur_p - erreur_p_p;
+    
+    if(dist_av > 330 || dist_av < 270 )
+        angle = 0.1 * (dist_av - 300);
+    else
+        angle = 0.35 * erreur_p + 0 * erreur_i + 0* erreur_d;
+    
+    if(angle > 35)
+        angle = 35;
+    if(angle < -35)
+        angle = - 35;
     
     set_angle_servo(angle);
-    
-    
     
     _T3IF = 0;
 }

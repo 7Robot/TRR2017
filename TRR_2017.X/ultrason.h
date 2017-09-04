@@ -32,6 +32,8 @@ void init_ultrason();
 
 uint16_t get_distance_US_d();
 uint16_t get_distance_US_g();
+uint16_t moy_US(uint16_t tab_val[], uint8_t* index, uint8_t valeur);
+
 
 #endif	/* ULTRASON_H */
 

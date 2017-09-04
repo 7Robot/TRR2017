@@ -51,6 +51,10 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
 {    
     uint32_t temp;
     static uint8_t cpt_restart;
+    static uint16_t val_capt_g[5] = {0};
+    static uint8_t index_g = 0;
+    static uint8_t index_d = 0;
+    static uint16_t val_capt_d[5] = {0};
     
     switch(etat)
     {
@@ -134,10 +138,11 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         //Avec une periode a 30710, il faut compter 6 fois pour avoir 50ms pour un cycle
         //Si t'es maso tu refera les calculs 
         PR4 = 30710;
-        cpt_restart = 0;
+        cpt_restart = 0;        
         
-        
-        
+        //Moyennage des valeurs des capteurs
+        moy_US(val_capt_g, &index_g, distance_g);
+        moy_US(val_capt_d, &index_d, distance_d);
         break; 
         
     case RESTART:
@@ -195,4 +200,22 @@ uint16_t get_distance_US_d()
 uint16_t get_distance_US_g()
 {
     return distance_g;
+}
+
+uint16_t moy_US(uint16_t* tab_val, uint8_t* index, uint8_t valeur)
+{
+    uint8_t i;
+    uint16_t somme = 0;
+    
+    tab_val[*index] = valeur;
+    (*index)++;
+    if(*index >= 5)
+        *index = 0;
+    
+    for (i = 0; i < 5; i++)
+    {
+        somme += tab_val[i];   
+    }
+    
+    return somme/5 ;
 }

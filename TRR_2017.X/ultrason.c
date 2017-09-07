@@ -116,7 +116,8 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
             temp = 2000;
         }
         
-        distance_av = moy_US(val_capt_av, &index_av, (uint16_t)(temp));
+        //distance_av = moy_US(val_capt_av, &index_av, (uint16_t)(temp));
+        distance_av = temp;
         
         if(fin_ar)
         {
@@ -128,8 +129,8 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
             temp = 2000;
         }
         
-        distance_ar = moy_US(val_capt_ar, &index_ar, temp);
-        
+        //distance_ar = moy_US(val_capt_ar, &index_ar, temp);
+        distance_ar = temp;
         //On remet les mesures de temps à 0;
         debut_av = 0;
         fin_av = 0;
@@ -191,14 +192,14 @@ void __attribute__((__interrupt__, no_auto_psv)) _CNInterrupt(void)
     _CNIF = 0;
 }
 
-uint16_t get_distance_US_ar()
+float get_distance_US_AR()
 {
-    return distance_ar;
+    return (float)(distance_ar + 0.f);
 }
 
-uint16_t get_distance_US_av()
+float get_distance_US_AV()
 {
-    return distance_av;
+    return (float)(distance_av + 0.f);
 }
 
 uint16_t moy_US(uint16_t* tab_val, uint8_t* index, uint8_t valeur)
@@ -206,15 +207,21 @@ uint16_t moy_US(uint16_t* tab_val, uint8_t* index, uint8_t valeur)
     uint8_t i;
     uint16_t somme = 0;
     
-    tab_val[*index] = valeur;
+    for(i = NB_MOY - 1; i > 0; i--)
+    {
+        tab_val[i] = tab_val[i - 1];
+    }
+    
+    tab_val[0] = valeur;
+    
     (*index)++;
-    if(*index >= NB_MOY)
+    if(*index >= NB_MOY)// si pondération ne pas oublier de changer NB_MOY
         *index = 0;
     
     for (i = 0; i < NB_MOY; i++)
     {
-        somme += tab_val[i];   
+        somme += tab_val[i] * (NB_MOY - i);
     }
     
-    return somme/NB_MOY ;
+    return somme/((NB_MOY*(NB_MOY+1))/2) ;
 }

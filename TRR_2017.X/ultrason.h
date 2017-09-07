@@ -32,8 +32,8 @@ enum etat_US{
  */
 void init_ultrason();
 
-uint16_t get_distance_US_AR();
-uint16_t get_distance_US_AV();
+float get_distance_US_AR();
+float get_distance_US_AV();
 uint16_t moy_US(uint16_t tab_val[], uint8_t* index, uint8_t valeur);
 
 

@@ -1,4 +1,5 @@
 #include <xc.h>
+#include <math.h>
 #include "ultrason.h"
 #include "asserv.h"
 
@@ -23,8 +24,12 @@ void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
 {
     static float erreur_m;
     static float erreur_a;
+    static float erreur_p_m = 0;
+    static float erreur_p_a = 0;
     static float erreur_i_a = 0;
     static float erreur_i_m = 0;
+    static float erreur_d_a = 0;
+    static float erreur_d_m = 0;
     float angle;
     int32_t dist_av;
     int32_t dist_ar;
@@ -32,18 +37,23 @@ void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
     dist_av = get_distance_US_AV();
     dist_ar = get_distance_US_AR();
     
-    erreur_m = (dist_av + dist_ar)/2 - 300;
+    erreur_m = (dist_av + dist_ar)/2 - MOYENNE;
     erreur_a = (dist_av - dist_ar);
     
     erreur_i_m += erreur_m;
     erreur_i_a += erreur_a;
+    
+    erreur_d_m = erreur_m - erreur_p_m;
+    erreur_d_a = erreur_a - erreur_p_a;
     
     if(erreur_i_a > 50)
         erreur_i_a = 50;
     if(erreur_i_a < -50)
         erreur_i_a = -50;
  
-    angle = 0.05 * erreur_m + 0.01 * erreur_a + 0.01 * erreur_i_a;
+    angle = 0.45 * erreur_m + 1.5 * erreur_a + 
+            0.06 * erreur_i_a + 0.018 * erreur_i_m + 
+            9.38 * erreur_d_a + 2.81 * erreur_d_m; 
     
     /*if(dist_av < 250)
         angle = 10 * (dist_av - 250);

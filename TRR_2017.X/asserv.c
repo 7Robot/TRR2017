@@ -11,8 +11,8 @@ void init_asserv()
     T3CON = 0x8030;
     
     //On configure la valeur max du timer = periode
-        //50000 on a donc une periode de 10ms
-    PR3 = 50000;
+        //5000 on a donc une periode de 50ms
+    PR3 = 10000;
     
     //On configure l'interruption sur T3
     _T3IE = 1;
@@ -21,36 +21,40 @@ void init_asserv()
 
 void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
 {
-    static float erreur_p;
-    static float erreur_p_p;
-    static float erreur_i = 0;
-    static float erreur_d = 0;
-    int8_t angle;
-    float dist_av;
-    float dist_ar;
-    
-    erreur_p_p = erreur_p;
+    static float erreur_m;
+    static float erreur_a;
+    static float erreur_i_a = 0;
+    static float erreur_i_m = 0;
+    float angle;
+    int32_t dist_av;
+    int32_t dist_ar;
     
     dist_av = get_distance_US_AV();
     dist_ar = get_distance_US_AR();
     
-    erreur_p = (dist_av - dist_ar);
+    erreur_m = (dist_av + dist_ar)/2 - 300;
+    erreur_a = (dist_av - dist_ar);
     
-    //erreur_p = (dist_av+dist_ar)/2 - MOYENNE;
+    erreur_i_m += erreur_m;
+    erreur_i_a += erreur_a;
     
-    erreur_i += erreur_p;
+    if(erreur_i_a > 50)
+        erreur_i_a = 50;
+    if(erreur_i_a < -50)
+        erreur_i_a = -50;
+ 
+    angle = 0.05 * erreur_m + 0.01 * erreur_a + 0.01 * erreur_i_a;
     
-    erreur_d = erreur_p - erreur_p_p ;
+    /*if(dist_av < 250)
+        angle = 10 * (dist_av - 250);
+    if(dist_av > 320)
+        angle = 15 * (dist_av - 320);
+    */
     
-   // if(dist_av > MOYENNE + E || dist_av < MOYENNE - E )
-   //     angle = 0.1 * (dist_av - 300);
-   // else
-    angle = 10 * erreur_p + 0 * erreur_i + 0* erreur_d; // calcul du PID
-    
-    if(angle > 35)
-        angle = 35;
-    if(angle < -35)
-        angle = - 35;
+    if(angle > 30)
+        angle = 30;
+    if(angle < -30)
+        angle = -30;
     
     set_angle_servo(angle);
     

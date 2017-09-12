@@ -24,10 +24,10 @@ int main(void) {
     init_ultrason();
     init_asserv();
     
-    
+    //set_angle_servo(30);
     while(1)
     {
-        PWM_Moteurs_droit(-40);
+        PWM_Moteurs_droit(-60);
     }
     
     return 0;

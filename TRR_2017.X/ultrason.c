@@ -192,14 +192,14 @@ void __attribute__((__interrupt__, no_auto_psv)) _CNInterrupt(void)
     _CNIF = 0;
 }
 
-float get_distance_US_AR()
+uint16_t get_distance_US_AR()
 {
-    return (float)(distance_ar + 0.f);
+    return distance_ar;
 }
 
-float get_distance_US_AV()
+uint16_t get_distance_US_AV()
 {
-    return (float)(distance_av + 0.f);
+    return distance_av;
 }
 
 uint16_t moy_US(uint16_t* tab_val, uint8_t* index, uint8_t valeur)

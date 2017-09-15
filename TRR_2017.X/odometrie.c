@@ -5,18 +5,18 @@
 #define DISTANCE_INTER_US 250
 
 /**
- * mesure l'angle entre la voiture et la piste en se basant sur la différence 
+ * mesure l'angle (radian) entre la voiture et la piste en se basant sur la différence 
  * des capteurs
  * @return 
  */
-double get_angle(){
+float get_angle(){
     int32_t dist_av;
     int32_t dist_ar;
-    double ratio;
+    float ratio;
     dist_av = get_distance_US_AV();
     dist_ar = get_distance_US_AR();
-    ratio = ((double)DISTANCE_INTER_US) / ((double)(dist_av-dist_ar));
-    return ratio - ((ratio*ratio*ratio)/3.0); // DL de l'atan //atan(ratio);
+    ratio = ((float)DISTANCE_INTER_US) / ((float)(dist_ar-dist_av));
+    return atan(ratio);//ratio - ((ratio*ratio*ratio)/3.0); // DL de l'atan
 }
 
 /**
@@ -26,13 +26,15 @@ double get_angle(){
  * la moyenne)
  * @return 
  */
-double get_delta(){
+float get_delta(){
     int32_t dist_av;
     int32_t dist_ar;
-    double alpha = get_angle();
-    double dist_m;
+    float result;
+    float sin_alpha = fabs(sin(get_angle()));
+    float dist_m;
     dist_av = get_distance_US_AV();
     dist_ar = get_distance_US_AR();
-    dist_m = ( dist_av + dist_ar ) / 2.0;
-    return dist_m * (alpha - ((alpha*alpha*alpha)/6.0)); // DL du sin //sin(alpha);//
+    dist_m = (float)(((float)( dist_av + dist_ar )) / ((float)2.0));
+    result = (float)dist_m * (float)sin_alpha;
+    return result;//(alpha - ((alpha*alpha*alpha)/6.0)); // DL du sin //
 }

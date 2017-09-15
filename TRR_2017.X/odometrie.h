@@ -12,9 +12,9 @@
 extern "C" {
 #endif
 
-double get_angle();
+float get_angle();
 
-double get_delta();
+float get_delta();
 
 #ifdef	__cplusplus
 }

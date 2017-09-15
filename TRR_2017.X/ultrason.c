@@ -117,7 +117,9 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         }
         
         //distance_av = moy_US(val_capt_av, &index_av, (uint16_t)(temp));
-        distance_av = temp;
+        if (temp > 30){
+            distance_av = temp;
+        }
         
         if(fin_ar)
         {
@@ -130,7 +132,9 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         }
         
         //distance_ar = moy_US(val_capt_ar, &index_ar, temp);
-        distance_ar = temp;
+        if (temp > 30){
+            distance_ar = temp;
+        }
         //On remet les mesures de temps à 0;
         debut_av = 0;
         fin_av = 0;

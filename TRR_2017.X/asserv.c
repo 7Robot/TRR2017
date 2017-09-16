@@ -42,7 +42,7 @@ void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
      on determine l'angle que doit prendre la voiture avec le bord de la piste pour atteindre la consigne
      */
     erreur_p_m = erreur_m;
-    erreur_m = (dist_av + dist_ar)/2 - MOYENNE;//get_delta() - MOYENNE;//
+    erreur_m = get_delta() - MOYENNE;//(dist_av + dist_ar)/2 - MOYENNE;//
     erreur_i_m += erreur_m;
     erreur_d_m = erreur_m - erreur_p_m;
 
@@ -52,7 +52,7 @@ void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
         erreur_i_m = -50;
  
     // pid pour determiner l'angle que doit prendre la voiture
-    consigne_a = 0.1 * erreur_m;
+    consigne_a = -1*(0.07*erreur_m + 0.04*erreur_i_m + 0.08*erreur_d_m);
     
     if(consigne_a > 100)  
         consigne_a = 100; 
@@ -73,7 +73,7 @@ void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
     if(erreur_i_a < -50)
         erreur_i_a = -50;
 
-    angle_servo = 0.732 * erreur_a + 0.66 * erreur_i_a + 0.167 * erreur_d_a;
+    angle_servo = 1.0 * erreur_a ;//+ 0.66 * erreur_i_a + 0.167 * erreur_d_a;
 
     //angle = 0.732 * erreur_a + 0.66 * erreur_i_a + 0.167 * erreur_d_a;
             /*0.45 * erreur_m + 1.5 * erreur_a + 

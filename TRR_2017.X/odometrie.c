@@ -15,8 +15,8 @@ float get_angle(){
     float ratio;
     dist_av = get_distance_US_AV();
     dist_ar = get_distance_US_AR();
-    ratio = ((float)DISTANCE_INTER_US) / ((float)(dist_ar-dist_av));
-    return atan(ratio);//ratio - ((ratio*ratio*ratio)/3.0); // DL de l'atan
+    ratio = (((float)(dist_ar-dist_av)/(float)DISTANCE_INTER_US));
+    return 90.0-atan(ratio);//ratio - ((ratio*ratio*ratio)/3.0); // DL de l'atan
 }
 
 /**

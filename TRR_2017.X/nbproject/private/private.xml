@@ -5,6 +5,7 @@
         <group>
             <file>file:/home/thibaut/Documents/7robot/TRR2017/TRR_2017.X/servo.c</file>
             <file>file:/home/thibaut/Documents/7robot/TRR2017/TRR_2017.X/odometrie.c</file>
+            <file>file:/home/thibaut/Documents/7robot/TRR2017/TRR_2017.X/ultrason.c</file>
             <file>file:/home/thibaut/Documents/7robot/TRR2017/TRR_2017.X/asserv.c</file>
             <file>file:/home/thibaut/Documents/7robot/TRR2017/TRR_2017.X/config.c</file>
             <file>file:/home/thibaut/Documents/7robot/TRR2017/TRR_2017.X/asserv.h</file>

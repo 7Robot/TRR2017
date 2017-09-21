@@ -17,6 +17,7 @@
 
 int main(void) {
     
+    uint16_t dist_av;
     
     config_oscillator();
     init_PWM();
@@ -28,6 +29,7 @@ int main(void) {
     while(1)
     {
         //PWM_Moteurs_droit(-40);
+        dist_av = get_distance_US_VIR();
         PWM_Moteurs_droit(-60);
     }
     

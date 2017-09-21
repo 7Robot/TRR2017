@@ -9,19 +9,24 @@ volatile uint16_t debut_av;
 volatile uint16_t fin_av;
 volatile uint16_t debut_ar;
 volatile uint16_t fin_ar;
+volatile uint16_t debut_vir;
+volatile uint16_t fin_vir;
 
 volatile uint16_t distance_av;
 volatile uint16_t distance_ar;
+volatile uint16_t distance_vir;
 
 void init_ultrason()
 {
     //On désactive les interruptions sur changement
     IE_US_AR = 0;
     IE_US_AV = 0;
+    IE_US_VIR = 0;
     
     //On met les PIN en input par précaution
     TRIS_US_AR = 1;
     TRIS_US_AV = 1;
+    TRIS_US_VIR = 1;
     
     //On configure le timer 4 pour gérer les capteurs
         //T4 actif, gate off, prescaler 1/8, mode 16 bits, source int
@@ -52,8 +57,9 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
     uint32_t temp;
     static uint8_t cpt_restart;
     static uint16_t val_capt_av[NB_MOY] = {0};
-    static uint8_t index_av = 0;
-    static uint8_t index_ar = 0;
+    //static uint8_t index_av = 0;
+    //static uint8_t index_ar = 0;
+    //static uint8_t index_vir = 0;
     static uint16_t val_capt_ar[NB_MOY] = {0};
     
     switch(etat)
@@ -63,8 +69,10 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         //On met les pins en output et on les met à 1
         TRIS_US_AV = 0;
         TRIS_US_AR = 0;
+        TRIS_US_VIR = 0;
         CAPT_US_AV = 1;
         CAPT_US_AR = 1;
+        CAPT_US_VIR = 1;
         
         //On prépare l'attente de 40µs
         PR4 = 200; 
@@ -77,8 +85,10 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         //On met les pins à 0 puis en input
         CAPT_US_AR = 0;
         CAPT_US_AV = 0;
+        CAPT_US_VIR = 0;
         TRIS_US_AR = 1;
         TRIS_US_AV = 1;
+        TRIS_US_VIR = 1;
         
         //On reset le timer
         PR4 = 0xFFFF;
@@ -88,6 +98,7 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         _CNIF = 0;
         IE_US_AR = 1;
         IE_US_AV = 1;
+        IE_US_VIR = 1;
         
         etat = WAITING;
         
@@ -97,6 +108,7 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         //On interdit les interruptions sur notification de changement pour les capteurs
         IE_US_AR = 0;
         IE_US_AV = 0;
+        IE_US_VIR = 0;
         
         //On calcul la durée de chaque impulsion
             /**
@@ -135,11 +147,26 @@ void __attribute__((interrupt, auto_psv)) _T4Interrupt(void)
         if (temp > 30){
             distance_ar = temp;
         }
+        
+        if(fin_vir){
+            temp = fin_vir - debut_vir;
+            temp = (temp * 1115) >> 15;
+        }
+        else
+        {
+            temp = 2000;
+        }
+        
+        if (temp > 30){
+            distance_vir = temp;
+        }
         //On remet les mesures de temps à 0;
         debut_av = 0;
         fin_av = 0;
         debut_ar = 0;
         fin_ar = 0;
+        debut_vir = 0;
+        fin_vir = 0;
         
         etat = RESTART;
         //Avec une periode a 30710, il faut compter 6 fois pour avoir 50ms pour un cycle
@@ -192,6 +219,17 @@ void __attribute__((__interrupt__, no_auto_psv)) _CNInterrupt(void)
         {
             fin_ar = TMR4;
         }
+        
+        //debut_d et fin_d sont remis à 0 dans l'interruption sur T4 etat WAITING
+        if((CAPT_US_VIR == 1) && (debut_vir == 0))
+        {
+            debut_vir = TMR4;
+        }
+        
+        if((CAPT_US_VIR == 0) && (debut_vir != 0) && (fin_vir == 0))
+        {
+            fin_vir = TMR4;
+        }
     }
     _CNIF = 0;
 }
@@ -204,6 +242,11 @@ uint16_t get_distance_US_AR()
 uint16_t get_distance_US_AV()
 {
     return distance_av;
+}
+
+uint16_t get_distance_US_VIR()
+{
+    return distance_vir;
 }
 
 uint16_t moy_US(uint16_t* tab_val, uint8_t* index, uint8_t valeur)

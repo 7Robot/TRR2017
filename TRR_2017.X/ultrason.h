@@ -16,6 +16,11 @@
 #define TRIS_US_AV  _TRISB7
 #define IE_US_AV    _CN23IE
 
+#define CAPT_US_VIR _RC5
+#define TRIS_US_VIR _TRISB5
+#define IE_US_VIR   _CN26IE
+
+
 #define NB_MOY 5
 
 #include <stdint.h>
@@ -34,6 +39,7 @@ void init_ultrason();
 
 uint16_t get_distance_US_AR();
 uint16_t get_distance_US_AV();
+uint16_t get_distance_US_VIR();
 uint16_t moy_US(uint16_t tab_val[], uint8_t* index, uint8_t valeur);
 
 

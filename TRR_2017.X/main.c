@@ -17,7 +17,6 @@
 
 int main(void) {
     
-    uint16_t dist_av;
     
     config_oscillator();
     init_PWM();
@@ -25,12 +24,11 @@ int main(void) {
     init_ultrason();
     init_asserv();
     
-    //set_angle_servo(30);
+    //set_angle_servo(20);
     while(1)
     {
         //PWM_Moteurs_droit(-40);
-        dist_av = get_distance_US_VIR();
-        PWM_Moteurs_droit(-60);
+        //PWM_Moteurs_droit(-60);
     }
     
     return 0;

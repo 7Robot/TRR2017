@@ -9,10 +9,11 @@
 #define	ASSERV_H
 
 
-#define MOYENNE 500
+#define MOYENNE 300
 #define E 30
 
 void init_asserv();
+float absolu(float a);
 
 #endif	/* ASSERV_H */
 

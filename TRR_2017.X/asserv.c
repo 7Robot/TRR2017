@@ -3,7 +3,7 @@
 #include "ultrason.h"
 #include "asserv.h"
 #include "odometrie.h"
-
+#include "motor.h"
 void init_asserv()
 {
     //On configure le timer 3
@@ -13,7 +13,7 @@ void init_asserv()
     
     //On configure la valeur max du timer = periode
         //5000 on a donc une periode de 50ms
-    PR3 = 10000;
+    PR3 = 50000;
     
     //On configure l'interruption sur T3
     _T3IE = 1;
@@ -22,25 +22,46 @@ void init_asserv()
 
 void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
 {
+    //test
+    int16_t test;
+    //err actuelle
     static float erreur_m;
     static float erreur_a;
+    
+    //err precedente
     static float erreur_p_m = 0;
     static float erreur_p_a = 0;
+    
+    //erreur integral
     static float erreur_i_a = 0;
     static float erreur_i_m = 0;
+    
+    //erreur dérivée
     static float erreur_d_a = 0;
     static float erreur_d_m = 0;
+    
+    //angle 
     float angle_servo;
-    float consigne_a; // angle que doit prendre le chassis de la voiture
-    int32_t dist_av;
-    int32_t dist_ar;
+    float consigne_a;
     
-    dist_av = get_distance_US_AV();
-    dist_ar = get_distance_US_AR();
+    static uint16_t dist_av;
+    static uint16_t dist_ar;
     
-    /* step 1
-     on determine l'angle que doit prendre la voiture avec le bord de la piste pour atteindre la consigne
+    uint16_t temp;
+    
+    temp = get_distance_US_AV();
+    if(temp < 1300)
+        dist_av = temp;
+    
+    
+    temp = get_distance_US_AR();
+    if(temp < 1300)
+        dist_ar = temp;
+  
+     /*
+     * PID en distance = chassi a Xcm de la piste
      */
+    
     erreur_p_m = erreur_m;
     erreur_m = get_delta() - MOYENNE;//(dist_av + dist_ar)/2 - MOYENNE;//
     erreur_i_m += erreur_m;
@@ -50,48 +71,45 @@ void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
         erreur_i_m = 50;
     if(erreur_i_m < -50)
         erreur_i_m = -50;
- 
-    // pid pour determiner l'angle que doit prendre la voiture
-    consigne_a = -1*(0.07*erreur_m + 0.04*erreur_i_m + 0.08*erreur_d_m);
     
-    if(consigne_a > 100)  
-        consigne_a = 100; 
-    if(consigne_a < -100) 
-        consigne_a = -100;   
+    consigne_a = -1*(0.07 * erreur_m + 0.04 * erreur_i_m + 0.08 * erreur_d_m);
     
-    /* step 2
-     on determine l'angle du servo pour obtenir l'angle consigne
+    /*
+     * PID en angle = chassi paralelle à la piste
      */
     
-    erreur_p_a = erreur_d_a;
-    erreur_a = (dist_av - dist_ar) - consigne_a; //get_angle()*(180/3.1415);
+    erreur_p_a = erreur_a;
+    erreur_a = (float)dist_av - (float)dist_ar - consigne_a;
     erreur_i_a += erreur_a;
-    erreur_d_a = erreur_a - erreur_p_a;
+    erreur_d_a =  erreur_a + erreur_p_a;
     
     if(erreur_i_a > 50)
         erreur_i_a = 50;
     if(erreur_i_a < -50)
         erreur_i_a = -50;
-
-    angle_servo = 1.0 * erreur_a ;//+ 0.66 * erreur_i_a + 0.167 * erreur_d_a;
-
-    //angle = 0.732 * erreur_a + 0.66 * erreur_i_a + 0.167 * erreur_d_a;
-            /*0.45 * erreur_m + 1.5 * erreur_a + 
-            0.06 * erreur_i_a + 0.018 * erreur_i_m + 
-            9.38 * erreur_d_a + 2.81 * erreur_d_m; */
     
-    /*if(dist_av < 250)
-        angle = 10 * (dist_av - 250);
-    if(dist_av > 320)
-        angle = 15 * (dist_av - 320);
-    */
+    //kc = 2.75
+    
+    angle_servo = 1.0 * erreur_a;
+
+    test = angle_servo;
     
     if(angle_servo > 30)
         angle_servo = 30;
     if(angle_servo < -30)
         angle_servo = -30;
     
+    
     set_angle_servo(angle_servo);
+    PWM_Moteurs_droit(-70 + absolu(angle_servo)*0);
     
     _T3IF = 0;
+}
+
+float absolu(float a)
+{
+    if(a < 0)
+        a =-a;
+    
+    return a;
 }

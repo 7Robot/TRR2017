@@ -92,7 +92,7 @@ void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
         angle_servo = -30;
     
     set_angle_servo(angle_servo);
-    PWM_Moteurs_droit(-60 + absolu(angle_servo));
+    PWM_Moteurs_droit(-80 + (1.67*absolu(angle_servo)));
     _T3IF = 0;
 }
 

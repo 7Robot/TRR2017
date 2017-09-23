@@ -12,7 +12,7 @@ void init_asserv()
     T3CON = 0x8030;
     
     //On configure la valeur max du timer = periode
-        //5000 on a donc une periode de 50ms
+        //10000 on a donc une periode de 10ms
     PR3 = 10000;
     
     //On configure l'interruption sur T3
@@ -34,6 +34,10 @@ void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
     float consigne_a; // angle que doit prendre le chassis de la voiture
     int32_t dist_av;
     int32_t dist_ar;
+    float pwm;
+    static uint32_t time = 0;
+    
+    time++;
     
     dist_av = get_distance_US_AV();
     dist_ar = get_distance_US_AR();
@@ -92,7 +96,30 @@ void __attribute__((interrupt, auto_psv)) _T3Interrupt(void)
         angle_servo = -30;
     
     set_angle_servo(angle_servo);
-    PWM_Moteurs_droit(-80 + (1.67*absolu(angle_servo)));
+    //7 sec = 100
+    
+    //if ((time > 350)&&(time < 420)){
+    //    pwm = -50 ;//+ absolu(angle_servo);
+    //} 
+    //else 
+    //{
+    //    
+    //    pwm = -70 + (1.33*absolu(angle_servo));
+    //}
+    
+    pwm = -35;
+    
+    if (time > 1400){
+            pwm = 0;
+    }
+    
+    if(pwm > 0)
+        pwm = 0;
+    if(pwm < -80)
+        pwm = -80;
+    
+    PWM_Moteurs_droit(pwm);
+    
     _T3IF = 0;
 }
 

@@ -27,7 +27,7 @@ int main(void) {
     //set_angle_servo(30);
     while(1)
     {
-        //PWM_Moteurs_droit(-40);
+        //PWM_Moteurs_droit(-10);
     }
     
     return 0;

@@ -9,7 +9,7 @@
 #define	ASSERV_H
 
 
-#define MOYENNE 500
+#define MOYENNE 200
 #define E 30
 
 void init_asserv();

@@ -28,7 +28,6 @@ int main(void) {
     while(1)
     {
         //PWM_Moteurs_droit(-40);
-        PWM_Moteurs_droit(-60);
     }
     
     return 0;

@@ -13,6 +13,8 @@
 #define E 30
 
 void init_asserv();
+float absolu(float a);
+
 
 #endif	/* ASSERV_H */
 
